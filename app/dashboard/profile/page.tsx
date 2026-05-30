@@ -858,7 +858,7 @@ export default function ProfileSetupPage() {
                     <Label htmlFor="url" className="text-xs sm:text-sm">Profile URL Slug</Label>
                     <div className="flex gap-2">
                       <span className="flex items-center px-3 bg-muted rounded-md text-xs text-muted-foreground whitespace-nowrap">
-                        beeconnect.com/
+                        pinnaclegridconnect.com/
                       </span>
                       <Input
                         id="url"

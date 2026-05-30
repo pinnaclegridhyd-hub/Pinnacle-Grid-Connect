@@ -2,7 +2,7 @@ export const PLAN_LIMITS = {
   free: {
     maxServices: 4,
     maxGalleryImages: 4,
-    maxEnquiriesPerMonth: 10,
+    maxEnquiriesPerMonth: 25,
     maxUploadSizeMB: 2,
     price: 0,
     name: 'Basic Plan'

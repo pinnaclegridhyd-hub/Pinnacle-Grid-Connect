@@ -188,7 +188,7 @@ export default function PublicProfilePage({ params }: { params: Promise<{ slug: 
 
   const handleShare = async () => {
     const shareData = {
-      title: vcard?.name || 'Bee Connect profile',
+      title: vcard?.name || 'Pinnacle Grid Connect profile',
       text: `Check out ${vcard?.name || 'this'}'s digital card`,
       url: profileUrl || window.location.href,
     };
@@ -541,9 +541,9 @@ export default function PublicProfilePage({ params }: { params: Promise<{ slug: 
 
           <div className="space-y-1">
             <p className="text-[10px] text-gray-400 font-bold uppercase tracking-wide">
-              Created with <span className="font-extrabold" style={{ color: tplColors.primary }}>Bee Connect</span>
+              Created with <span className="font-extrabold" style={{ color: tplColors.primary }}>Pinnacle Grid Connect</span>
             </p>
-            <p className="text-[8px] text-gray-400 tracking-wider">All Rights Reserved ©{new Date().getFullYear()} Bee Connect</p>
+            <p className="text-[8px] text-gray-400 tracking-wider">All Rights Reserved ©{new Date().getFullYear()} Pinnacle Grid Connect</p>
           </div>
         </div>
       </div>

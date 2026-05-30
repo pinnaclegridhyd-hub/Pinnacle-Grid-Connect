@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/hooks/useAuth';
@@ -46,10 +46,8 @@ export default function LoginPage() {
       <div className="w-full max-w-md">
         {/* Logo */}
         <div className="text-center mb-6 sm:mb-8">
-          <div className="w-10 sm:w-12 h-10 sm:h-12 rounded-full bg-gradient-to-br from-primary to-accent flex items-center justify-center text-white font-bold text-base sm:text-lg mx-auto mb-3 sm:mb-4">
-            U
-          </div>
-          <h1 className="text-2xl sm:text-3xl font-bold text-foreground">Bee Connect</h1>
+          <img src="/logo.png" alt="Pinnacle Grid Connect" className="h-16 mx-auto mb-3 sm:mb-4 object-contain" />
+          <h1 className="text-2xl sm:text-3xl font-bold text-foreground">Pinnacle Grid Connect</h1>
           <p className="text-xs sm:text-sm text-muted-foreground mt-2">Create smart digital visiting cards</p>
         </div>
 
@@ -131,7 +129,7 @@ export default function LoginPage() {
 
         {/* Footer */}
         <p className="text-center text-xs text-muted-foreground mt-6 sm:mt-8">
-          All Rights Reserved ©2026 Bee Connect
+          All Rights Reserved ©2026 Pinnacle Grid Connect
         </p>
       </div>
     </div>

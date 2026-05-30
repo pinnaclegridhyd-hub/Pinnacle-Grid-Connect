@@ -3,7 +3,7 @@
 
 @custom-variant dark (&:is(.dark *));
 
-/* Bee Connect color palette */
+/* Pinnacle Grid Connect color palette */
 :root {
   /* Primary Colors - Deep Navy & Vibrant Purple */
   --background: oklch(0.98 0 0);

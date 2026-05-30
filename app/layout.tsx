@@ -8,36 +8,23 @@ const _geist = Geist({ subsets: ["latin"] });
 const _geistMono = Geist_Mono({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: 'Bee Connect - Smart Digital Visiting Cards',
-  description: 'Create, share, and manage smart digital visiting cards with Bee Connect.',
+  title: 'Pinnacle Grid Connect - Smart Digital Visiting Cards',
+  description: 'Create, share, and manage smart digital visiting cards with Pinnacle Grid Connect.',
   generator: 'v0.app',
   openGraph: {
-    title: 'Bee Connect - Smart Digital Visiting Cards',
-    description: 'Create, share, and manage smart digital visiting cards with Bee Connect.',
-    siteName: 'Bee Connect',
+    title: 'Pinnacle Grid Connect - Smart Digital Visiting Cards',
+    description: 'Create, share, and manage smart digital visiting cards with Pinnacle Grid Connect.',
+    siteName: 'Pinnacle Grid Connect',
     type: 'website',
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Bee Connect - Smart Digital Visiting Cards',
-    description: 'Create, share, and manage smart digital visiting cards with Bee Connect.',
+    title: 'Pinnacle Grid Connect - Smart Digital Visiting Cards',
+    description: 'Create, share, and manage smart digital visiting cards with Pinnacle Grid Connect.',
   },
   icons: {
-    icon: [
-      {
-        url: '/icon-light-32x32.png',
-        media: '(prefers-color-scheme: light)',
-      },
-      {
-        url: '/icon-dark-32x32.png',
-        media: '(prefers-color-scheme: dark)',
-      },
-      {
-        url: '/icon.svg',
-        type: 'image/svg+xml',
-      },
-    ],
-    apple: '/apple-icon.png',
+    icon: '/logo.png',
+    apple: '/logo.png',
   },
 }
 

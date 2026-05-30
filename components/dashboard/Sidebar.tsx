@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
@@ -88,10 +88,8 @@ export default function Sidebar({ onClose }: SidebarProps) {
       {/* Logo */}
       <div className="p-6 border-b border-sidebar-border">
         <div className="flex items-center gap-2">
-          <div className="w-8 h-8 rounded-full bg-gradient-to-br from-primary to-accent flex items-center justify-center text-white font-bold">
-            BC
-          </div>
-          <span className="font-semibold text-sm">Bee Connect</span>
+          <img src="/logo.png" alt="Pinnacle Grid Connect" className="w-8 h-8 object-contain" />
+          <span className="font-semibold text-sm">Pinnacle Grid Connect</span>
         </div>
       </div>
 
@@ -126,7 +124,7 @@ export default function Sidebar({ onClose }: SidebarProps) {
       {/* Footer */}
       <div className="p-4 border-t border-sidebar-border">
         <p className="text-xs text-sidebar-foreground/60">
-          All Rights Reserved Â©2026 Bee Connect
+          All Rights Reserved Â©2026 Pinnacle Grid Connect
         </p>
       </div>
     </div>
