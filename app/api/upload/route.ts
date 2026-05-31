@@ -45,20 +45,13 @@ export async function POST(req: NextRequest) {
     const bytes = await file.arrayBuffer();
     const buffer = Buffer.from(bytes);
 
-    // Ensure uploads directory exists
-    const uploadsDir = path.join(process.cwd(), 'public', 'uploads');
-    try {
-      await mkdir(uploadsDir, { recursive: true });
-    } catch (e) {}
-
-    const fileExt = file.name.split('.').pop() || 'png';
-    const publicId = `img_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-    const filename = `${publicId}.${fileExt}`;
-    const filePath = path.join(uploadsDir, filename);
-
-    await writeFile(filePath, buffer);
-
-    const url = `/uploads/${filename}`;
+    // In serverless environments like Vercel, the filesystem is read-only.
+    // Instead of saving to disk, we convert the image to a Data URL and store it directly.
+    const mimeType = file.type || 'image/png';
+    const base64Image = buffer.toString('base64');
+    const url = `data:${mimeType};base64,${base64Image}`;
+    
+    const publicId = `img_${Date.now()}_${Math.random().toString(36).substring(2, 11)}`;
 
     return NextResponse.json({
       url,
