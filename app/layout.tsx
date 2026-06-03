@@ -23,8 +23,8 @@ export const metadata: Metadata = {
     description: 'Create, share, and manage smart digital visiting cards with Pinnacle Grid Connect.',
   },
   icons: {
-    icon: '/logo.png',
-    apple: '/logo.png',
+    icon: '/pgc-logo.png',
+    apple: '/pgc-logo.png',
   },
 }
 

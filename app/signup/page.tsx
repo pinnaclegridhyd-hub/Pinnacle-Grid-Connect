@@ -59,7 +59,7 @@ export default function SignupPage() {
       <div className="w-full max-w-md">
         {/* Logo */}
         <div className="text-center mb-6 sm:mb-8">
-          <img src="/logo.png" alt="Pinnacle Grid Connect" className="h-16 mx-auto mb-3 sm:mb-4 object-contain" />
+          <img src="/pgc-logo.png" alt="Pinnacle Grid Connect" className="h-16 mx-auto mb-3 sm:mb-4 object-contain" />
           <h1 className="text-2xl sm:text-3xl font-bold text-foreground">Pinnacle Grid Connect</h1>
           <p className="text-xs sm:text-sm text-muted-foreground mt-2">Create smart digital visiting cards</p>
         </div>

@@ -46,7 +46,7 @@ export default function LoginPage() {
       <div className="w-full max-w-md">
         {/* Logo */}
         <div className="text-center mb-6 sm:mb-8">
-          <img src="/logo.png" alt="Pinnacle Grid Connect" className="h-16 mx-auto mb-3 sm:mb-4 object-contain" />
+          <img src="/pgc-logo.png" alt="Pinnacle Grid Connect" className="h-16 mx-auto mb-3 sm:mb-4 object-contain" />
           <h1 className="text-2xl sm:text-3xl font-bold text-foreground">Pinnacle Grid Connect</h1>
           <p className="text-xs sm:text-sm text-muted-foreground mt-2">Create smart digital visiting cards</p>
         </div>
@@ -118,12 +118,7 @@ export default function LoginPage() {
               </Link>
             </div>
 
-            {/* Demo Credentials */}
-            <div className="mt-4 sm:mt-6 p-3 sm:p-4 bg-muted/30 rounded-lg border border-muted/50">
-              <p className="text-xs font-semibold text-foreground mb-2">Demo Credentials:</p>
-              <p className="text-xs text-muted-foreground mb-1 break-all">Email: <code className="bg-muted px-1 py-0.5 rounded text-xs">demo@example.com</code></p>
-              <p className="text-xs text-muted-foreground break-all">Password: <code className="bg-muted px-1 py-0.5 rounded text-xs">demo123</code></p>
-            </div>
+
           </CardContent>
         </Card>
 

@@ -88,7 +88,7 @@ export default function Sidebar({ onClose }: SidebarProps) {
       {/* Logo */}
       <div className="p-6 border-b border-sidebar-border">
         <div className="flex items-center gap-2">
-          <img src="/logo.png" alt="Pinnacle Grid Connect" className="w-8 h-8 object-contain" />
+          <img src="/pgc-logo.png" alt="Pinnacle Grid Connect" className="w-8 h-8 object-contain" />
           <span className="font-semibold text-sm">Pinnacle Grid Connect</span>
         </div>
       </div>

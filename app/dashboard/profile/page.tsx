@@ -210,6 +210,11 @@ const defaultFormData = {
   bannerUrl: '',
   bannerDescription: '',
   bannerButton: '',
+  profileImage: '',
+  bannerImage: '',
+  bannerPositionX: 50,
+  bannerPositionY: 50,
+  bannerScale: 100,
 
   // Legal
   privacyPolicy: '',
@@ -530,7 +535,25 @@ export default function ProfileSetupPage() {
     return (
       <div className="w-full h-full overflow-y-auto bg-white scrollbar-hide text-[10px] text-gray-800 flex flex-col pb-16">
         {/* 1. Header Strip */}
-        <div style={{ height: 40, background: tplColors.header, position: 'relative' }} className="flex-shrink-0">
+        <div 
+          style={
+            formData.bannerImage 
+              ? { 
+                  height: 40,
+                  backgroundImage: `url(${formData.bannerImage})`,
+                  backgroundPosition: `${formData.bannerPositionX ?? 50}% ${formData.bannerPositionY ?? 50}%`,
+                  backgroundSize: `${formData.bannerScale ?? 100}%`,
+                  backgroundRepeat: 'no-repeat',
+                  position: 'relative'
+                } 
+              : { 
+                  height: 40,
+                  background: tplColors.header,
+                  position: 'relative' 
+                }
+          } 
+          className="flex-shrink-0"
+        >
           {/* 2. Avatar */}
           <div 
             style={{ 
@@ -546,12 +569,17 @@ export default function ProfileSetupPage() {
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
+              overflow: 'hidden',
               fontWeight: 'bold',
               fontSize: '10px',
               color: tplColors.primary
             }}
           >
-            {formData.name ? formData.name.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase() : 'U'}
+            {formData.profileImage ? (
+              <img src={formData.profileImage} alt={formData.name} className="w-full h-full object-cover" />
+            ) : (
+              formData.name ? formData.name.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase() : 'U'
+            )}
           </div>
         </div>
         
@@ -890,6 +918,75 @@ export default function ProfileSetupPage() {
                       rows={3}
                       className="text-xs sm:text-sm"
                     />
+                  </div>
+                  {/* Profile Image Upload */}
+                  <div className="sm:col-span-2 space-y-2 border-t border-border/40 pt-4">
+                    <Label className="text-xs sm:text-sm font-semibold">Profile Photo</Label>
+                    <div className="flex flex-col sm:flex-row items-center gap-4">
+                      <div className="relative w-20 h-20 rounded-full border border-border bg-muted flex items-center justify-center overflow-hidden flex-shrink-0">
+                        {formData.profileImage ? (
+                          <img src={formData.profileImage} alt="Profile Photo" className="w-full h-full object-cover" />
+                        ) : (
+                          <span className="text-muted-foreground text-xs font-semibold">No Image</span>
+                        )}
+                      </div>
+                      <div className="flex-1 w-full space-y-2">
+                        <div className="flex gap-2">
+                          <label 
+                            htmlFor="profile-upload"
+                            className="inline-flex items-center justify-center rounded-md text-xs font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-input bg-background hover:bg-accent hover:text-accent-foreground h-9 px-3 cursor-pointer"
+                          >
+                            Upload Photo
+                            <input 
+                              type="file" 
+                              accept="image/*" 
+                              id="profile-upload"
+                              className="hidden"
+                              onChange={async (e) => {
+                                const file = e.target.files?.[0];
+                                if (!file) return;
+                                
+                                if (file.size > 5 * 1024 * 1024) {
+                                  alert('Image size exceeds 5MB limit.');
+                                  return;
+                                }
+
+                                try {
+                                  const formDataToUpload = new FormData();
+                                  formDataToUpload.append('file', file);
+                                  const res = await fetch('/api/upload', {
+                                    method: 'POST',
+                                    body: formDataToUpload
+                                  });
+                                  if (res.ok) {
+                                    const data = await res.json();
+                                    updateField('profileImage', data.url);
+                                  } else {
+                                    const errData = await res.json();
+                                    alert(errData.error || 'Failed to upload image');
+                                  }
+                                } catch (err) {
+                                  console.error(err);
+                                  alert('Error uploading image');
+                                }
+                              }}
+                            />
+                          </label>
+                          {formData.profileImage && (
+                            <Button 
+                              variant="outline" 
+                              size="sm" 
+                              onClick={() => updateField('profileImage', '')}
+                              type="button"
+                              className="text-xs h-9 px-3 text-red-500 hover:text-red-600 hover:bg-red-50/10 border-red-500/20"
+                            >
+                              Remove
+                            </Button>
+                          )}
+                        </div>
+                        <p className="text-[10px] text-muted-foreground">PNG, JPG, JPEG up to 5MB. Suggested square dimensions.</p>
+                      </div>
+                    </div>
                   </div>
                   <div className="flex items-center justify-between sm:col-span-2 p-3 bg-muted/40 rounded-lg">
                     <div className="space-y-0.5">
@@ -1344,6 +1441,160 @@ export default function ProfileSetupPage() {
                       </div>
                     </div>
                   )}
+
+                  {/* Cover/Banner Image Section */}
+                  <div className="border-t border-border/40 pt-6 space-y-4">
+                    <div>
+                      <h3 className="text-sm font-semibold text-foreground">Cover Banner Image</h3>
+                      <p className="text-xs text-muted-foreground">Upload a cover image that will display at the top of your public profile.</p>
+                    </div>
+
+                    <div className="flex flex-col gap-4">
+                      {/* Upload and controls */}
+                      <div className="flex flex-col sm:flex-row gap-4 items-start">
+                        <div className="flex-1 w-full space-y-3">
+                          <div className="flex gap-2">
+                            <label 
+                              htmlFor="cover-upload"
+                              className="inline-flex items-center justify-center rounded-md text-xs font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-input bg-background hover:bg-accent hover:text-accent-foreground h-9 px-3 cursor-pointer"
+                            >
+                              Upload Cover Image
+                              <input 
+                                type="file" 
+                                accept="image/*" 
+                                id="cover-upload"
+                                className="hidden"
+                                onChange={async (e) => {
+                                  const file = e.target.files?.[0];
+                                  if (!file) return;
+                                  
+                                  if (file.size > 5 * 1024 * 1024) {
+                                    alert('Image size exceeds 5MB limit.');
+                                    return;
+                                  }
+
+                                  try {
+                                    const formDataToUpload = new FormData();
+                                    formDataToUpload.append('file', file);
+                                    const res = await fetch('/api/upload', {
+                                      method: 'POST',
+                                      body: formDataToUpload
+                                    });
+                                    if (res.ok) {
+                                      const data = await res.json();
+                                      updateField('bannerImage', data.url);
+                                    } else {
+                                      const errData = await res.json();
+                                      alert(errData.error || 'Failed to upload image');
+                                    }
+                                  } catch (err) {
+                                    console.error(err);
+                                    alert('Error uploading image');
+                                  }
+                                }}
+                              />
+                            </label>
+                            {formData.bannerImage && (
+                              <Button 
+                                variant="outline" 
+                                size="sm" 
+                                type="button"
+                                onClick={() => {
+                                  updateField('bannerImage', '');
+                                  updateField('bannerPositionX', 50);
+                                  updateField('bannerPositionY', 50);
+                                  updateField('bannerScale', 100);
+                                }}
+                                className="text-xs h-9 px-3 text-red-500 hover:text-red-600 hover:bg-red-50/10 border-red-500/20"
+                              >
+                                Remove Cover
+                              </Button>
+                            )}
+                          </div>
+                          <p className="text-[10px] text-muted-foreground">PNG, JPG, JPEG up to 5MB. Suggested aspect ratio 16:9.</p>
+
+                          {formData.bannerImage && (
+                            <div className="space-y-3 pt-2">
+                              <div className="space-y-1">
+                                <div className="flex justify-between text-xs font-semibold">
+                                  <span>Position X (Horizontal): {formData.bannerPositionX ?? 50}%</span>
+                                </div>
+                                <input 
+                                  type="range" 
+                                  min="0" 
+                                  max="100" 
+                                  value={formData.bannerPositionX ?? 50} 
+                                  onChange={(e) => updateField('bannerPositionX', parseInt(e.target.value))}
+                                  className="w-full h-1.5 bg-secondary rounded-lg appearance-none cursor-pointer accent-primary"
+                                />
+                              </div>
+
+                              <div className="space-y-1">
+                                <div className="flex justify-between text-xs font-semibold">
+                                  <span>Position Y (Vertical): {formData.bannerPositionY ?? 50}%</span>
+                                </div>
+                                <input 
+                                  type="range" 
+                                  min="0" 
+                                  max="100" 
+                                  value={formData.bannerPositionY ?? 50} 
+                                  onChange={(e) => updateField('bannerPositionY', parseInt(e.target.value))}
+                                  className="w-full h-1.5 bg-secondary rounded-lg appearance-none cursor-pointer accent-primary"
+                                />
+                              </div>
+
+                              <div className="space-y-1">
+                                <div className="flex justify-between text-xs font-semibold">
+                                  <span>Zoom / Scale: {formData.bannerScale ?? 100}%</span>
+                                </div>
+                                <input 
+                                  type="range" 
+                                  min="100" 
+                                  max="200" 
+                                  value={formData.bannerScale ?? 100} 
+                                  onChange={(e) => updateField('bannerScale', parseInt(e.target.value))}
+                                  className="w-full h-1.5 bg-secondary rounded-lg appearance-none cursor-pointer accent-primary"
+                                />
+                              </div>
+                            </div>
+                          )}
+                        </div>
+
+                        {/* Visual Live Preview container */}
+                        <div className="w-full sm:w-60 h-32 rounded-lg border border-border overflow-hidden bg-muted flex-shrink-0 relative">
+                          <div 
+                            style={
+                              formData.bannerImage 
+                                ? { 
+                                    backgroundImage: `url(${formData.bannerImage})`,
+                                    backgroundPosition: `${formData.bannerPositionX ?? 50}% ${formData.bannerPositionY ?? 50}%`,
+                                    backgroundSize: `${formData.bannerScale ?? 100}%`,
+                                    backgroundRepeat: 'no-repeat',
+                                  } 
+                                : { 
+                                    background: `linear-gradient(135deg, ${tplColors.header}, ${tplColors.accent})` 
+                                  }
+                            } 
+                            className="w-full h-full relative"
+                          >
+                            <div className="absolute inset-0 opacity-10 bg-grid-pattern" />
+                            {/* Overlaid profile picture */}
+                            <div 
+                              style={{ borderColor: '#ffffff', backgroundColor: tplColors.bg, color: tplColors.primary }}
+                              className="absolute -bottom-6 left-1/2 -translate-x-1/2 w-12 h-12 rounded-full border-2 shadow-md flex items-center justify-center overflow-hidden font-bold text-xs"
+                            >
+                              {formData.profileImage ? (
+                                <img src={formData.profileImage} alt="Avatar" className="w-full h-full object-cover" />
+                              ) : (
+                                formData.name ? formData.name.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase() : 'U'
+                              )}
+                            </div>
+                          </div>
+                        </div>
+
+                      </div>
+                    </div>
+                  </div>
                 </div>
               )}
 

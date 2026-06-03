@@ -63,6 +63,11 @@ export interface IVCard extends Document {
   bannerUrl: string;
   bannerDescription: string;
   bannerButton: string;
+  profileImage: string;
+  bannerImage: string;
+  bannerPositionX: number;
+  bannerPositionY: number;
+  bannerScale: number;
   // Legal
   privacyPolicy: string;
   termsConditions: string;
@@ -108,6 +113,11 @@ const VCardSchema = new Schema<IVCard>(
     bannerUrl:         { type: String, default: '' },
     bannerDescription: { type: String, default: '' },
     bannerButton:      { type: String, default: '' },
+    profileImage:      { type: String, default: '' },
+    bannerImage:       { type: String, default: '' },
+    bannerPositionX:   { type: Number, default: 50 },
+    bannerPositionY:   { type: Number, default: 50 },
+    bannerScale:       { type: Number, default: 100 },
     privacyPolicy:     { type: String, default: '' },
     termsConditions:   { type: String, default: '' },
     servicesList: [{

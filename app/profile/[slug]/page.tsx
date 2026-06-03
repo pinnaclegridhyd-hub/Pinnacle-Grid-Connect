@@ -12,6 +12,11 @@ import {
   MapPin,
   X,
   Sparkles,
+  Facebook,
+  Instagram,
+  Linkedin,
+  Youtube,
+  Twitter,
 } from 'lucide-react';
 import QRCode from 'react-qr-code';
 import { getPublicProfileUrl } from '@/lib/public-url';
@@ -43,6 +48,11 @@ interface VCard {
   bannerUrl: string;
   bannerDescription: string;
   bannerButton: string;
+  profileImage?: string;
+  bannerImage?: string;
+  bannerPositionX?: number;
+  bannerPositionY?: number;
+  bannerScale?: number;
   customLinks?: { id: string; label: string; url: string }[];
   sections: {
     header: boolean;
@@ -88,15 +98,66 @@ const DEFAULT_SECTIONS: VCard['sections'] = {
   newsletter: true,
 };
 
+const SocialIcon = ({ type, className = "w-4 h-4" }: { type: string; className?: string }) => {
+  switch (type) {
+    case 'website':
+      return <Globe className={className} />;
+    case 'facebook':
+      return <Facebook className={className} />;
+    case 'instagram':
+      return <Instagram className={className} />;
+    case 'linkedin':
+      return <Linkedin className={className} />;
+    case 'youtube':
+      return <Youtube className={className} />;
+    case 'twitter':
+      return (
+        <svg className={className} viewBox="0 0 24 24" fill="currentColor">
+          <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
+        </svg>
+      );
+    case 'whatsapp':
+      return (
+        <svg className={className} viewBox="0 0 24 24" fill="currentColor">
+          <path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946C.06 5.348 5.397.01 12.008.01c3.202.001 6.212 1.246 8.477 3.514 2.266 2.268 3.507 5.28 3.505 8.484-.004 6.657-5.34 11.997-11.953 11.997-2.005-.001-3.973-.502-5.713-1.458L0 24zm6.59-4.846c1.6.95 3.188 1.449 4.825 1.451 5.436 0 9.86-4.37 9.864-9.799.002-2.63-1.023-5.101-2.885-6.97C16.579 2.019 14.122 1 11.503 1 6.066 1 1.643 5.371 1.64 10.8c-.001 1.838.5 3.626 1.45 5.216l-1.012 3.7 3.82-.998z" />
+        </svg>
+      );
+    default:
+      return <Globe className={className} />;
+  }
+};
+
 const DEFAULT_ORDER = ['header', 'banner', 'services', 'gallery', 'products', 'testimonials', 'businessHours', 'contact', 'newsletter'];
 
 export default function PublicProfilePage({ params }: { params: Promise<{ slug: string }> }) {
   const resolvedParams = use(params);
   const slug = resolvedParams.slug;
 
+  const [loading, setLoading] = useState(true);
   const [vcard, setVcard] = useState<VCard | null>(null);
   const [bannerDismissed, setBannerDismissed] = useState(false);
   const [profileUrl, setProfileUrl] = useState('');
+  const [activeImageIndex, setActiveImageIndex] = useState<number | null>(null);
+
+  useEffect(() => {
+    if (activeImageIndex === null) return;
+    
+    const gallery = vcard?.galleryImages;
+    if (!gallery) return;
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        setActiveImageIndex(null);
+      } else if (e.key === 'ArrowRight') {
+        setActiveImageIndex((prev) => (prev !== null && prev < gallery.length - 1) ? prev + 1 : 0);
+      } else if (e.key === 'ArrowLeft') {
+        setActiveImageIndex((prev) => (prev !== null && prev > 0) ? prev - 1 : (gallery.length - 1 || 0));
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [activeImageIndex, vcard?.galleryImages]);
 
   useEffect(() => {
     const loadProfile = async () => {
@@ -141,6 +202,8 @@ export default function PublicProfilePage({ params }: { params: Promise<{ slug: 
         });
       } catch {
         setVcard(null);
+      } finally {
+        setLoading(false);
       }
     };
 
@@ -205,6 +268,48 @@ export default function PublicProfilePage({ params }: { params: Promise<{ slug: 
     }
   };
 
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-white text-gray-800 relative pb-24 overflow-x-hidden selection:bg-purple-100">
+        <div className="max-w-[480px] mx-auto bg-white border-x border-gray-100 min-h-screen shadow-sm flex flex-col animate-pulse">
+          {/* Skeleton Cover Banner */}
+          <div className="h-32 sm:h-36 w-full bg-gray-100 relative">
+            {/* Skeleton Profile Picture */}
+            <div className="absolute -bottom-10 left-1/2 -translate-x-1/2 w-20 h-20 rounded-full border-4 border-white bg-gray-200 shadow-md" />
+          </div>
+          {/* Skeleton Details */}
+          <div className="pt-12 px-6 pb-6 text-center space-y-3">
+            <div className="h-5 w-32 bg-gray-200 rounded mx-auto" />
+            <div className="h-3.5 w-24 bg-gray-200 rounded mx-auto" />
+            <div className="h-3 w-16 bg-gray-100 rounded mx-auto" />
+            <div className="h-12 w-full bg-gray-100 rounded-lg mt-4" />
+          </div>
+          {/* Skeleton Social Row */}
+          <div className="px-6 py-2 flex justify-center gap-3">
+            {[...Array(5)].map((_, i) => (
+              <div key={i} className="w-8 h-8 rounded-full bg-gray-200" />
+            ))}
+          </div>
+          {/* Skeleton Action Grid */}
+          <div className="px-6 py-6 grid grid-cols-2 gap-3">
+            {[...Array(4)].map((_, i) => (
+              <div key={i} className="h-10 rounded-xl bg-gray-100" />
+            ))}
+          </div>
+          {/* Skeleton Services Section */}
+          <div className="px-6 py-6 space-y-4">
+            <div className="h-4 w-28 bg-gray-200 rounded" />
+            <div className="grid grid-cols-2 gap-3">
+              {[...Array(2)].map((_, i) => (
+                <div key={i} className="h-24 rounded-xl bg-gray-100" />
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   if (!vcard) {
     return (
       <div className="min-h-screen bg-white flex items-center justify-center p-4">
@@ -264,17 +369,35 @@ export default function PublicProfilePage({ params }: { params: Promise<{ slug: 
       case 'header':
         return (
           <div key="header" className="flex-shrink-0">
-            <div style={{ background: `linear-gradient(135deg, ${tplColors.header}, ${tplColors.accent})` }} className="h-32 sm:h-36 w-full relative">
+            <div 
+              style={
+                vcard.bannerImage 
+                  ? { 
+                      backgroundImage: `url(${vcard.bannerImage})`,
+                      backgroundPosition: `${vcard.bannerPositionX ?? 50}% ${vcard.bannerPositionY ?? 50}%`,
+                      backgroundSize: `${vcard.bannerScale ?? 100}%`,
+                      backgroundRepeat: 'no-repeat',
+                    } 
+                  : { 
+                      background: `linear-gradient(135deg, ${tplColors.header}, ${tplColors.accent})` 
+                    }
+              } 
+              className="h-32 sm:h-36 w-full relative"
+            >
               <div className="absolute inset-0 opacity-10 bg-grid-pattern" />
               <div
                 style={{ borderColor: '#ffffff', backgroundColor: tplColors.bg, color: tplColors.primary }}
-                className="absolute -bottom-10 left-1/2 -translate-x-1/2 w-20 h-20 rounded-full border-4 shadow-md flex items-center justify-center font-bold text-2xl"
+                className="absolute -bottom-14 left-1/2 -translate-x-1/2 w-28 h-28 rounded-full border-4 shadow-md flex items-center justify-center overflow-hidden font-bold text-2xl"
               >
-                {avatarInitials}
+                {vcard.profileImage ? (
+                  <img src={vcard.profileImage} alt={vcard.name} className="w-full h-full object-cover" />
+                ) : (
+                  avatarInitials
+                )}
               </div>
             </div>
 
-            <div className="pt-12 px-4 pb-4 text-center space-y-1">
+            <div className="pt-16 px-4 pb-4 text-center space-y-1">
               <h1 className="text-xl font-bold text-gray-900 tracking-tight leading-tight">{vcard.name}</h1>
               <p className="text-xs font-semibold" style={{ color: tplColors.primary }}>
                 {vcard.designation}
@@ -295,7 +418,7 @@ export default function PublicProfilePage({ params }: { params: Promise<{ slug: 
                   { url: vcard.twitter, color: '#000000', label: 'Twitter', icon: 'twitter' },
                 ]
                   .filter((social) => social.url)
-                  .slice(0, 6)
+                  .slice(0, 7)
                   .map((social) => (
                     <a
                       key={social.label}
@@ -305,13 +428,7 @@ export default function PublicProfilePage({ params }: { params: Promise<{ slug: 
                       style={{ background: social.color }}
                       className="w-8 h-8 rounded-full flex items-center justify-center text-white shadow-sm hover:scale-105 active:scale-95 transition-transform"
                     >
-                      {social.icon === 'website' && <span className="text-[8px] font-black">WWW</span>}
-                      {social.icon === 'facebook' && <span className="text-xs font-black">f</span>}
-                      {social.icon === 'instagram' && <span className="text-xs font-black">IG</span>}
-                      {social.icon === 'linkedin' && <span className="text-[10px] font-black">in</span>}
-                      {social.icon === 'youtube' && <span className="text-[9px] font-black">▶</span>}
-                      {social.icon === 'whatsapp' && <span className="text-xs font-black">💬</span>}
-                      {social.icon === 'twitter' && <span className="text-xs font-black">𝕏</span>}
+                      <SocialIcon type={social.icon} className="w-4 h-4" />
                     </a>
                   ))}
               </div>
@@ -420,7 +537,8 @@ export default function PublicProfilePage({ params }: { params: Promise<{ slug: 
               {vcard.galleryImages.map((img, i) => (
                 <div
                   key={img.publicId || i}
-                  className="w-28 h-20 rounded-xl flex-shrink-0 snap-start shadow-sm border border-gray-50 overflow-hidden"
+                  onClick={() => setActiveImageIndex(i)}
+                  className="w-28 h-20 rounded-xl flex-shrink-0 snap-start shadow-sm border border-gray-50 overflow-hidden cursor-pointer hover:opacity-90 transition-opacity"
                   style={{ background: `linear-gradient(${120 + i * 30}deg, ${tplColors.primary}${30 + i * 10}, ${tplColors.accent}${40 + i * 10})` }}
                 >
                   {img?.url ? <img src={img.url} alt="Gallery" className="w-full h-full object-cover" /> : null}
@@ -566,6 +684,96 @@ export default function PublicProfilePage({ params }: { params: Promise<{ slug: 
           </div>
         </div>
       </div>
+
+      {/* Gallery Lightbox Viewer */}
+      {activeImageIndex !== null && vcard.galleryImages && vcard.galleryImages[activeImageIndex] && (() => {
+        const galleryImages = vcard.galleryImages;
+        return (
+          <div 
+            className="fixed inset-0 z-[100] bg-black/90 flex flex-col items-center justify-center p-4 select-none animate-fade-in"
+            onClick={() => setActiveImageIndex(null)}
+          >
+            {/* Close button */}
+            <button 
+              type="button"
+              className="absolute top-4 right-4 text-white/80 hover:text-white bg-white/10 hover:bg-white/20 p-2 rounded-full transition-colors z-10"
+              onClick={(e) => {
+                e.stopPropagation();
+                setActiveImageIndex(null);
+              }}
+            >
+              <X className="w-6 h-6" />
+            </button>
+
+            {/* Navigation controls */}
+            {galleryImages.length > 1 && (
+              <>
+                <button 
+                  type="button"
+                  className="absolute left-4 top-1/2 -translate-y-1/2 text-white/80 hover:text-white bg-white/10 hover:bg-white/20 p-3 rounded-full transition-colors z-10 hidden sm:block"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setActiveImageIndex(prev => (prev !== null && prev > 0) ? prev - 1 : galleryImages.length - 1);
+                  }}
+                >
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                  </svg>
+                </button>
+                <button 
+                  type="button"
+                  className="absolute right-4 top-1/2 -translate-y-1/2 text-white/80 hover:text-white bg-white/10 hover:bg-white/20 p-3 rounded-full transition-colors z-10 hidden sm:block"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setActiveImageIndex(prev => (prev !== null && prev < galleryImages.length - 1) ? prev + 1 : 0);
+                  }}
+                >
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                  </svg>
+                </button>
+              </>
+            )}
+
+            {/* Image and Caption */}
+            <div className="relative w-full max-w-4xl max-h-[85vh] flex flex-col items-center justify-center" onClick={(e) => e.stopPropagation()}>
+              <img 
+                src={galleryImages[activeImageIndex].url} 
+                alt={galleryImages[activeImageIndex].caption || "Gallery image"}
+                className="max-w-full max-h-[75vh] object-contain rounded-lg shadow-2xl animate-scale-in"
+              />
+              {galleryImages[activeImageIndex].caption && (
+                <p className="text-white/90 text-sm mt-4 text-center px-6 leading-relaxed max-w-prose">
+                  {galleryImages[activeImageIndex].caption}
+                </p>
+              )}
+              
+              {/* Mobile swipe/tap navigation helper info */}
+              {galleryImages.length > 1 && (
+                <div className="flex justify-between w-full mt-4 px-4 sm:hidden">
+                  <button 
+                    type="button" 
+                    className="text-white/70 hover:text-white text-xs font-semibold px-3 py-1.5 rounded bg-white/10"
+                    onClick={() => setActiveImageIndex(prev => (prev !== null && prev > 0) ? prev - 1 : galleryImages.length - 1)}
+                  >
+                    ◀ Prev
+                  </button>
+                  <span className="text-white/60 text-xs self-center">
+                    {activeImageIndex + 1} / {galleryImages.length}
+                  </span>
+                  <button 
+                    type="button" 
+                    className="text-white/70 hover:text-white text-xs font-semibold px-3 py-1.5 rounded bg-white/10"
+                    onClick={() => setActiveImageIndex(prev => (prev !== null && prev < galleryImages.length - 1) ? prev + 1 : 0)}
+                  >
+                    Next ▶
+                  </button>
+                </div>
+              )}
+            </div>
+          </div>
+        );
+      })()}
     </main>
   );
 }
