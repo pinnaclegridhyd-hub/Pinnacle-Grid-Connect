@@ -35,16 +35,30 @@ export default function VCardsPage() {
     <div className="p-4 sm:p-6 lg:p-8 space-y-4 sm:space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-bold text-foreground">My vCards</h1>
+          <h1 className="text-2xl sm:text-3xl font-bold text-foreground">
+            My vCards {!loading && `(${vcards.length}/4)`}
+          </h1>
           <p className="text-sm sm:text-base text-muted-foreground mt-2">Manage your digital business cards</p>
         </div>
-        <Link href="/dashboard/profile">
-          <Button className="gap-2 text-xs sm:text-sm h-9 sm:h-10 flex-1 sm:flex-none">
+        {!loading && vcards.length >= 4 ? (
+          <Button 
+            className="gap-2 text-xs sm:text-sm h-9 sm:h-10 flex-1 sm:flex-none"
+            variant="outline"
+            onClick={() => alert("Limit reached: You can create a maximum of 4 vCards.")}
+          >
             <Plus className="w-3 h-3 sm:w-4 sm:h-4" />
             <span className="hidden sm:inline">Create New vCard</span>
             <span className="sm:hidden">Create</span>
           </Button>
-        </Link>
+        ) : (
+          <Link href="/dashboard/profile">
+            <Button className="gap-2 text-xs sm:text-sm h-9 sm:h-10 flex-1 sm:flex-none">
+              <Plus className="w-3 h-3 sm:w-4 sm:h-4" />
+              <span className="hidden sm:inline">Create New vCard</span>
+              <span className="sm:hidden">Create</span>
+            </Button>
+          </Link>
+        )}
       </div>
 
       <div className="">
@@ -106,7 +120,7 @@ export default function VCardsPage() {
                                 <Eye className="w-3 h-3 sm:w-4 sm:h-4" />
                               </Button>
                             </a>
-                            <Link href="/dashboard/profile">
+                            <Link href={`/dashboard/profile?id=${id}`}>
                               <Button size="sm" variant="ghost" className="h-8 w-8 p-0 text-muted-foreground hover:text-foreground">
                                 <Edit2 className="w-3 h-3 sm:w-4 sm:h-4" />
                               </Button>

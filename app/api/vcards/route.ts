@@ -51,12 +51,34 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: `${planLimits.name} is limited to ${planLimits.maxGalleryImages} gallery images. Please upgrade to add more.` }, { status: 403 });
     }
 
-    // Upsert: one vcard per user (update if exists, create if not)
-    const vcard = await VCard.findOneAndUpdate(
-      { userId: auth.userId },
-      { ...body, userId: auth.userId },
-      { new: true, upsert: true, runValidators: true }
-    );
+    // Strip _id to prevent Mongoose mutation errors
+    const { _id, ...updateFields } = body;
+
+    let vcard;
+    if (_id) {
+      // Update existing vCard
+      vcard = await VCard.findOneAndUpdate(
+        { _id, userId: auth.userId },
+        { ...updateFields, userId: auth.userId },
+        { new: true, runValidators: true }
+      );
+      if (!vcard) {
+        return NextResponse.json({ error: 'vCard not found' }, { status: 404 });
+      }
+    } else {
+      // Create new vCard - enforce count limit
+      const currentCount = await VCard.countDocuments({ userId: auth.userId });
+      const maxVCards = planLimits.maxVCards ?? 4;
+      if (currentCount >= maxVCards) {
+        return NextResponse.json(
+          { error: `Limit reached: You can create a maximum of ${maxVCards} vCards.` },
+          { status: 403 }
+        );
+      }
+
+      vcard = new VCard({ ...updateFields, userId: auth.userId });
+      await vcard.save();
+    }
 
     return NextResponse.json({ vcard });
   } catch (error: any) {

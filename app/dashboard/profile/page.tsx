@@ -253,67 +253,102 @@ export default function ProfileSetupPage() {
 
   useEffect(() => {
     const loadVCard = async () => {
-      // Try API first
+      // Safely read query parameters in client component
+      const searchParams = new URLSearchParams(window.location.search);
+      const cardId = searchParams.get('id');
+
       try {
         const [vcardRes, userRes] = await Promise.all([
           fetch('/api/vcards', { credentials: 'include' }),
           fetch('/api/auth/me', { credentials: 'include' })
         ]);
         
+        let planLimit = 4;
         if (userRes.ok) {
           const userData = await userRes.json();
-          if (userData.user?.plan) setUserPlan(ENABLE_PREMIUM_FEATURES ? userData.user.plan : 'free');
+          if (userData.user?.plan) {
+            setUserPlan(ENABLE_PREMIUM_FEATURES ? userData.user.plan : 'free');
+            const effectivePlan = ENABLE_PREMIUM_FEATURES ? userData.user.plan : 'free';
+            planLimit = PLAN_LIMITS[effectivePlan as keyof typeof PLAN_LIMITS]?.maxVCards ?? 4;
+          }
         }
 
         if (vcardRes.ok) {
           const data = await vcardRes.json();
-          if (data.vcards?.length > 0) {
-            const vcard = data.vcards[0];
-            // Convert hours array to object format for UI
-            const hoursObj: any = {};
-            (vcard.hours || []).forEach((h: any) => {
-              hoursObj[h.day] = { open: h.open, close: h.close, closed: h.closed };
-            });
+          const userVCards = data.vcards || [];
+          
+          if (cardId) {
+            // Edit mode: find the card by ID
+            const vcard = userVCards.find((v: any) => v._id === cardId);
+            if (vcard) {
+              // Convert hours array to object format for UI
+              const hoursObj: any = {};
+              (vcard.hours || []).forEach((h: any) => {
+                hoursObj[h.day] = { open: h.open, close: h.close, closed: h.closed };
+              });
 
-            const normalizedSections = sanitizeSections(vcard.sections || defaultFormData.sections);
-            const normalizedSectionOrder = sanitizeSectionOrder(vcard.sectionOrder || defaultFormData.sectionOrder);
+              const normalizedSections = sanitizeSections(vcard.sections || defaultFormData.sections);
+              const normalizedSectionOrder = sanitizeSectionOrder(vcard.sectionOrder || defaultFormData.sectionOrder);
 
-            const formattedData = {
-              ...defaultFormData,
-              ...vcard,
-              website: vcard.socialLinks?.website || vcard.website || '',
-              whatsappNumber: vcard.whatsappNumber || vcard.socialLinks?.whatsapp || '',
-              whatsapp: vcard.socialLinks?.whatsapp || vcard.whatsappNumber || '',
-              facebook: vcard.socialLinks?.facebook || '',
-              instagram: vcard.socialLinks?.instagram || '',
-              linkedin: vcard.socialLinks?.linkedin || '',
-              twitter: vcard.socialLinks?.twitter || '',
-              youtube: vcard.socialLinks?.youtube || '',
-              tiktok: vcard.socialLinks?.tiktok || '',
-              pinterest: vcard.socialLinks?.pinterest || '',
-              telegram: vcard.socialLinks?.telegram || '',
-              reddit: vcard.socialLinks?.reddit || '',
-              googledrive: vcard.socialLinks?.googledrive || '',
-              hours: Object.keys(hoursObj).length > 0 ? hoursObj : defaultFormData.hours,
-              sections: normalizedSections,
-              sectionOrder: normalizedSectionOrder.length > 0 ? normalizedSectionOrder : defaultFormData.sectionOrder,
-            };
-            setFormData(formattedData);
-            setCustomLinks(vcard.customLinks || []);
-            // Update localStorage cache
-            localStorage.setItem('vcard_data', JSON.stringify({ ...formattedData, customLinks: vcard.customLinks || [] }));
+              const formattedData = {
+                ...defaultFormData,
+                ...vcard,
+                website: vcard.socialLinks?.website || vcard.website || '',
+                whatsappNumber: vcard.whatsappNumber || vcard.socialLinks?.whatsapp || '',
+                whatsapp: vcard.socialLinks?.whatsapp || vcard.whatsappNumber || '',
+                facebook: vcard.socialLinks?.facebook || '',
+                instagram: vcard.socialLinks?.instagram || '',
+                linkedin: vcard.socialLinks?.linkedin || '',
+                twitter: vcard.socialLinks?.twitter || '',
+                youtube: vcard.socialLinks?.youtube || '',
+                tiktok: vcard.socialLinks?.tiktok || '',
+                pinterest: vcard.socialLinks?.pinterest || '',
+                telegram: vcard.socialLinks?.telegram || '',
+                reddit: vcard.socialLinks?.reddit || '',
+                googledrive: vcard.socialLinks?.googledrive || '',
+                hours: Object.keys(hoursObj).length > 0 ? hoursObj : defaultFormData.hours,
+                sections: normalizedSections,
+                sectionOrder: normalizedSectionOrder.length > 0 ? normalizedSectionOrder : defaultFormData.sectionOrder,
+              };
+              setFormData(formattedData);
+              setCustomLinks(vcard.customLinks || []);
+              // Update localStorage cache
+              localStorage.setItem('vcard_data', JSON.stringify({ ...formattedData, customLinks: vcard.customLinks || [] }));
+              return;
+            } else {
+              alert('vCard not found.');
+              router.push('/dashboard/vcards');
+              return;
+            }
+          } else {
+            // Create mode: verify count limit
+            if (userVCards.length >= planLimit) {
+              alert(`Limit reached: You can create a maximum of ${planLimit} vCards.`);
+              router.push('/dashboard/vcards');
+              return;
+            }
+            // Fresh form
+            setFormData(defaultFormData);
+            setCustomLinks([]);
             return;
           }
         }
-      } catch {}
+      } catch (err) {
+        console.error('Error loading card:', err);
+      }
 
       // Fallback to localStorage cache
       const cached = localStorage.getItem('vcard_data');
       if (cached) {
-        try { setFormData(JSON.parse(cached)); } catch {}
         try {
           const parsed = JSON.parse(cached);
-          if (parsed.customLinks) setCustomLinks(parsed.customLinks);
+          // If we are creating a new card (no cardId), but cached data has an _id, ignore it
+          if (!cardId && parsed._id) {
+            // Ignore cached data of another card
+          } else {
+            setFormData(parsed);
+            if (parsed.customLinks) setCustomLinks(parsed.customLinks);
+          }
         } catch {}
       }
     };
@@ -403,9 +438,21 @@ export default function ProfileSetupPage() {
       });
 
       if (res.ok) {
-        // Also update localStorage cache
-        localStorage.setItem('vcard_data', JSON.stringify({ ...formData, customLinks }));
+        const data = await res.json();
+        const savedVCard = data.vcard;
+        
+        // Also update local state and localStorage cache
+        const updatedFormData = { ...formData, _id: savedVCard._id, url: savedVCard.url };
+        setFormData(updatedFormData);
+        localStorage.setItem('vcard_data', JSON.stringify({ ...updatedFormData, customLinks }));
         setSaved(true);
+
+        // If this was a new card, update URL so subsequent saves are updates
+        const searchParams = new URLSearchParams(window.location.search);
+        if (!searchParams.get('id') && savedVCard?._id) {
+          router.replace(`/dashboard/profile?id=${savedVCard._id}`);
+        }
+
         setTimeout(() => setSaved(false), 2000);
       } else {
         const err = await res.json();
